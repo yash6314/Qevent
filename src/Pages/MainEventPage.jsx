@@ -9,10 +9,7 @@ import dashboardServices from "../Services/dashboardServices";
 
 const MainEventPage = () => {
   const { addToast } = useToast();
-  const [events, setEvents] = useState([
-    { event_id: 1, name: "New Year" },
-    { event_id: 2, name: "Holiday" },
-  ]);
+  const [events, setEvents] = useState([]);
   const [eventId, setEventId] = useState("");
   const [htno, setHtno] = useState("");
   const [studentFetchLoading, setStudentFetchLoading] = useState(false);
@@ -74,6 +71,8 @@ const MainEventPage = () => {
   };
 
   useEffect(() => {
+    let intervalId;
+
     const getEventStats = async () => {
       try {
         setLoadingEventStats(true);
@@ -87,9 +86,19 @@ const MainEventPage = () => {
         setLoadingEventStats(false);
       }
     };
+
     if (eventId) {
+      // Fetch immediately when eventId changes
       getEventStats();
+
+      // Then fetch every 5 seconds
+      intervalId = setInterval(getEventStats, 5000);
     }
+
+    return () => {
+      // Cleanup interval on unmount or when eventId changes
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [eventId]);
 
   const onClickRegisterStudent = async () => {
@@ -139,41 +148,36 @@ const MainEventPage = () => {
       </header>
 
       {/* Stats Section */}
-      {loadingEventStats ? (
-        <div className="flex justify-center items-center p-5">
-          <Loader2 className="w-5 h-5 animate-spin text-gray-500" />
-        </div>
-      ) : (
-        eventId && (
-          <div className="grid grid-cols-4 gap-4 mb-4">
-            <div className="bg-white p-5 rounded-xl shadow-sm text-center">
-              <p className="text-xs uppercase text-gray-500">
-                Total Registrations
-              </p>
-              <p className="text-2xl font-semibold text-gray-800">
-                {eventStats.total_registrations}
-              </p>
-            </div>
-            <div className="bg-white p-5 rounded-xl shadow-sm text-center">
-              <p className="text-xs uppercase text-gray-500">Total Attended</p>
-              <p className="text-2xl font-semibold text-gray-800">
-                {eventStats.total_attended}
-              </p>
-            </div>
-            <div className="bg-white p-5 rounded-xl shadow-sm text-center">
-              <p className="text-xs uppercase text-gray-500">Moving In</p>
-              <p className="text-2xl font-semibold text-blue-600">
-                {eventStats.moving_in}
-              </p>
-            </div>
-            <div className="bg-white p-5 rounded-xl shadow-sm text-center">
-              <p className="text-xs uppercase text-gray-500">Moving Out</p>
-              <p className="text-2xl font-semibold text-red-600">
-                {eventStats.moving_out}
-              </p>
-            </div>
+
+      {eventId && (
+        <div className="grid grid-cols-4 gap-4 mb-4">
+          <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+            <p className="text-xs uppercase text-gray-500">
+              Total Registrations
+            </p>
+            <p className="text-2xl font-semibold text-gray-800">
+              {eventStats.total_registrations}
+            </p>
           </div>
-        )
+          <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+            <p className="text-xs uppercase text-gray-500">Total Attended</p>
+            <p className="text-2xl font-semibold text-gray-800">
+              {eventStats.total_attended}
+            </p>
+          </div>
+          <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+            <p className="text-xs uppercase text-gray-500">Moving In</p>
+            <p className="text-2xl font-semibold text-blue-600">
+              {eventStats.moving_in}
+            </p>
+          </div>
+          <div className="bg-white p-5 rounded-xl shadow-sm text-center">
+            <p className="text-xs uppercase text-gray-500">Moving Out</p>
+            <p className="text-2xl font-semibold text-red-600">
+              {eventStats.moving_out}
+            </p>
+          </div>
+        </div>
       )}
 
       {/* Content */}
@@ -203,7 +207,7 @@ const MainEventPage = () => {
           {eventId !== "" && (
             <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Enter ID Number
+                Enter ID Number Number
               </label>
               <div className="flex gap-2">
                 <input
